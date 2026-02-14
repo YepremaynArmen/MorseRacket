@@ -1,15 +1,20 @@
 package com.example.morseracket.ui.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,12 +25,33 @@ import androidx.navigation.NavController
 import com.example.morseracket.R
 import com.example.morseracket.data.MorseData
 import com.example.morseracket.ui.cards.MorseCard
+import com.example.morseracket.ui.controllers.LetterController
+import com.example.morseracket.ui.controllers.MorseController
+import androidx.compose.runtime.collectAsState
+
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
     var isRussian by remember { mutableStateOf(false) }
-    var keyPressed by remember { mutableStateOf(false) }
-    var currentLetterIndex by remember { mutableStateOf(0) }
+
+    val letterController = remember { LetterController() }
+    val morseController = remember { MorseController() }
+
+    // ✅ СОБИРАЕМ состояния контроллеров
+    val currentLetter by letterController.currentLetter.collectAsState()
+    val controller = remember { MorseController() }
+    var isKeyPressed by controller::isKeyPressed  // делегирование
+    var lineOffset by controller::lineOffset
+
+// Использование:
+    controller.onKeyPress()
+    controller.onKeyRelease()
+
+
+    // Синхронизируем язык с контроллером
+    LaunchedEffect(isRussian) {
+        letterController.updateLanguage(isRussian)
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         // 1. boxTop ПРИЖАТ ВВЕРХ - переключатель
@@ -68,50 +94,74 @@ fun LearnLettersScreen(navController: NavController) {
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(220.dp)
+                    .width(280.dp)
                     .padding(end = 24.dp)
             ) {
                 // boxText - вся высота сверху
-
-
                 Box(modifier = Modifier.weight(1f)) {
-                    val letters = if (isRussian) MorseData.RUSSIAN_LETTERS else MorseData.LATIN_LETTERS
-                    val currentLetter = letters.getOrNull(currentLetterIndex)
-
-                    if (currentLetter != null) {
+                    currentLetter?.let { letter ->
+                        // ✅ ЧИСТЫЙ UI - контроллер дал готовую букву!
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // 1️⃣ boxLetter - БУКВА СВЕРХУ
+                            // 📦 boxLetter - БУКВА СВЕРХУ
                             Text(
-                                text = currentLetter.first,
+                                text = letter.first,
                                 fontSize = 48.sp,
                                 fontWeight = FontWeight.Black
                             )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(24.dp))
 
-                            // 2️⃣ boxCode - МОРЗЕ СНИЗУ
-                            Text(
-                                text = currentLetter.second,
-                                fontSize = 48.sp,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary
-                            )
+                            // 📦 boxCode - ЛИНИЯ МОРЗЕ
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(60.dp)
+                                    .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .width(24.dp)
+                                        .offset(x = (140 + lineOffset).dp)
+                                        .align(Alignment.Center)
+                                        .background(
+                                            MaterialTheme.colorScheme.primary,
+                                            RoundedCornerShape(4.dp)
+                                        )
+                                )
+                            }
                         }
-                    } else {
-                        Text(
-                            text = "ПРАВАЯ\nПАНЕЛЬ",
-                            fontSize = 16.sp,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.align(Alignment.Center)
-                        )
-                    }
+                    } ?: Text(
+                        text = "ПРАВАЯ\nПАНЕЛЬ",
+                        fontSize = 16.sp,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
 
+                // КНОПКИ переключения букв
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 16.dp),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    IconButton(
+                        onClick = { letterController.prevLetter(isRussian) }
+                    ) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Предыдущая")
+                    }
 
+                    IconButton(
+                        onClick = { letterController.nextLetter(isRussian) }
+                    ) {
+                        Icon(Icons.Default.ArrowForward, contentDescription = "Следующая")
+                    }
+                }
 
                 // boxKey ПРИЖАТ ВНИЗ
                 Box(
@@ -121,10 +171,10 @@ fun LearnLettersScreen(navController: NavController) {
                 ) {
                     Image(
                         painter = painterResource(
-                            if (keyPressed) R.drawable.tapper_down
+                            if (isKeyPressed) R.drawable.tapper_down
                             else R.drawable.tapper_up
                         ),
-                        contentDescription = "Телеграфный ключ",
+                        contentDescription = null,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)
@@ -132,9 +182,9 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
-                                        keyPressed = true
+                                        morseController.onKeyPress()
                                         tryAwaitRelease()
-                                        keyPressed = false
+                                        morseController.onKeyRelease()
                                     }
                                 )
                             }
