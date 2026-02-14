@@ -21,16 +21,13 @@ import com.example.morseracket.R
 import com.example.morseracket.data.MorseData
 import com.example.morseracket.ui.cards.MorseCard
 
-
-
 @Composable
 fun LearnLettersScreen(navController: NavController) {
     var isRussian by remember { mutableStateOf(false) }
     var keyPressed by remember { mutableStateOf(false) }
+    var currentLetterIndex by remember { mutableStateOf(0) }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    Column(modifier = Modifier.fillMaxSize()) {
         // 1. boxTop ПРИЖАТ ВВЕРХ - переключатель
         Box(
             modifier = Modifier
@@ -53,9 +50,7 @@ fun LearnLettersScreen(navController: NavController) {
         }
 
         // 2+3. boxLeft + boxRight - основная область
-        Row(
-            modifier = Modifier.weight(1f)
-        ) {
+        Row(modifier = Modifier.weight(1f)) {
             // boxLeft СЛЕВА - БУКВЫ
             LazyColumn(
                 modifier = Modifier
@@ -77,16 +72,46 @@ fun LearnLettersScreen(navController: NavController) {
                     .padding(end = 24.dp)
             ) {
                 // boxText - вся высота сверху
-                Box(
-                    modifier = Modifier.weight(1f),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "ПРАВАЯ\nПАНЕЛЬ",
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center
-                    )
+
+
+                Box(modifier = Modifier.weight(1f)) {
+                    val letters = if (isRussian) MorseData.RUSSIAN_LETTERS else MorseData.LATIN_LETTERS
+                    val currentLetter = letters.getOrNull(currentLetterIndex)
+
+                    if (currentLetter != null) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            // 1️⃣ boxLetter - БУКВА СВЕРХУ
+                            Text(
+                                text = currentLetter.first,
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Black
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            // 2️⃣ boxCode - МОРЗЕ СНИЗУ
+                            Text(
+                                text = currentLetter.second,
+                                fontSize = 48.sp,
+                                fontWeight = FontWeight.Black,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = "ПРАВАЯ\nПАНЕЛЬ",
+                            fontSize = 16.sp,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.align(Alignment.Center)
+                        )
+                    }
                 }
+
+
 
                 // boxKey ПРИЖАТ ВНИЗ
                 Box(
