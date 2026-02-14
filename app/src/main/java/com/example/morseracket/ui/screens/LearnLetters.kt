@@ -37,6 +37,12 @@ import kotlinx.coroutines.delay
 fun LearnLettersScreen(navController: NavController) {
     var isRussian by remember { mutableStateOf(false) }
 
+    // ✅ ДОБАВЛЕН НАВЕРХУ - для ВСЕХ полосок!
+    var isKeyPressedLocal by remember { mutableStateOf(false) }
+
+    // ✅ НОВОЕ состояние - вторая синяя полоска остаётся НАВСЕГДА!
+    var hasSecondBar by remember { mutableStateOf(false) }
+
     val letterController = remember { LetterController() }
     val morseController = remember { MorseController() }
 
@@ -45,11 +51,6 @@ fun LearnLettersScreen(navController: NavController) {
     val controller = remember { MorseController() }
     var isKeyPressed by controller::isKeyPressed  // делегирование
     var lineOffset by controller::lineOffset
-
-// Использование:
-    controller.onKeyPress()
-    controller.onKeyRelease()
-
 
     // Синхронизируем язык с контроллером
     LaunchedEffect(isRussian) {
@@ -103,13 +104,12 @@ fun LearnLettersScreen(navController: NavController) {
                 // boxText - вся высота сверху
                 Box(modifier = Modifier.weight(1f)) {
                     currentLetter?.let { letter ->
-                        // ✅ ЧИСТЫЙ UI - контроллер дал готовую букву!
                         Column(
                             modifier = Modifier.fillMaxSize(),
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // 📦 boxLetter - БУКВА СВЕРХУ
+                            // 📦 boxLetter - БУКВВА СВЕРХУ
                             Text(
                                 text = letter.first,
                                 fontSize = 48.sp,
@@ -118,24 +118,39 @@ fun LearnLettersScreen(navController: NavController) {
 
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // 📦 boxCode - ЛИНИЯ МОРЗЕ
+                            // ✅ ИСПРАВЛЕННЫЙ boxCode - ДВЕ СИНИЕ полоски
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(60.dp)
                                     .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             ) {
+                                // ОСНОВНАЯ СИНИЯ (центр)
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .width(24.dp)
-                                        .offset(x = 140.dp)  // ФИКСИРОВАННАЯ позиция!
                                         .align(Alignment.Center)
                                         .background(
                                             MaterialTheme.colorScheme.primary,
                                             RoundedCornerShape(4.dp)
                                         )
                                 )
+
+                                // ✅ ВТОРАЯ СИНИЯ слева (остаётся навсегда после 1-го нажатия!)
+                                if (hasSecondBar) {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxHeight()
+                                            .width(24.dp)
+                                            .offset(x = -24.dp)
+                                            .align(Alignment.Center)
+                                            .background(
+                                                MaterialTheme.colorScheme.primary,
+                                                RoundedCornerShape(4.dp)
+                                            )
+                                    )
+                                }
                             }
                         }
                     } ?: Text(
@@ -172,9 +187,6 @@ fun LearnLettersScreen(navController: NavController) {
                         .fillMaxWidth()
                         .height(120.dp)
                 ) {
-
-
-                    var isKeyPressedLocal by remember { mutableStateOf(false) }
                     Image(
                         painter = painterResource(
                             if (isKeyPressedLocal) R.drawable.tapper_down
@@ -188,20 +200,19 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
-                                        isKeyPressedLocal = true           // ← ВИЗУАЛ НАЖАТИЯ
-                                        morseController.onKeyPress()
+                                        isKeyPressedLocal = true
+                                        controller.onKeyPress()
 
-                                        tryAwaitRelease()                  // ← ЖДЁТ ОТПУСКА
+                                        // ✅ СОЗДАЁМ вторую синяя полоску ПРЯМО СЕЙЧАС!
+                                        hasSecondBar = true
 
-                                        isKeyPressedLocal = false          // ← ВИЗУАЛ ОТПУСКА
-                                        morseController.onKeyRelease()
+                                        tryAwaitRelease()
+                                        isKeyPressedLocal = false
+                                        controller.onKeyRelease()
                                     }
                                 )
                             }
                     )
-
-
-
                 }
             }
         }
