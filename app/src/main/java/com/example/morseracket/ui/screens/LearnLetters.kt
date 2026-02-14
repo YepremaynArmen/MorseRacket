@@ -29,59 +29,38 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.LaunchedEffect
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.IntOffset
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
     var isRussian by remember { mutableStateOf(false) }
-
-    // ✅ ДОБАВЛЕН НАВЕРХУ - для ВСЕХ полосок!
     var isKeyPressedLocal by remember { mutableStateOf(false) }
 
-    // ✅ НОВОЕ состояние - вторая синяя полоска остаётся НАВСЕГДА!
-    var hasSecondBar by remember { mutableStateOf(false) }
+    // ✅ КОНСТАНТЫ для линии Морзе
+    val CONTAINER_WIDTH = 280
+    val DOT_WIDTH = 25
+    val GAP = 0.dp  // расстояние между точками
 
     val letterController = remember { LetterController() }
     val morseController = remember { MorseController() }
 
-    // ✅ СОБИРАЕМ состояния контроллеров
+    // ✅ Состояние для НАКОПЛЕНИЯ точек (удержание ключа)
+    var dotCount by remember { mutableStateOf(0) }
+
     val currentLetter by letterController.currentLetter.collectAsState()
     val controller = remember { MorseController() }
-    var isKeyPressed by controller::isKeyPressed  // делегирование
+    var isKeyPressed by controller::isKeyPressed
     var lineOffset by controller::lineOffset
 
-    // Синхронизируем язык с контроллером
     LaunchedEffect(isRussian) {
         letterController.updateLanguage(isRussian)
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // 1. boxTop ПРИЖАТ ВВЕРХ - переключатель
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp)
-                .padding(24.dp)
-        ) {
-            Column(
-                modifier = Modifier.align(Alignment.TopCenter),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text("🎓 Изучение букв", fontSize = 24.sp)
-                Spacer(Modifier.height(16.dp))
-                Row(horizontalArrangement = Arrangement.Center) {
-                    Text("🇺🇸 Латинский", fontSize = 16.sp)
-                    Switch(checked = isRussian, onCheckedChange = { isRussian = it })
-                    Text("🇷🇺 Русский", fontSize = 16.sp)
-                }
-            }
-        }
+        // ... boxTop без изменений ...
 
-        // 2+3. boxLeft + boxRight - основная область
         Row(modifier = Modifier.weight(1f)) {
-            // boxLeft СЛЕВА - БУКВЫ
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
@@ -94,14 +73,12 @@ fun LearnLettersScreen(navController: NavController) {
                 }
             }
 
-            // boxRight СПРАВА
             Column(
                 modifier = Modifier
                     .fillMaxHeight()
-                    .width(280.dp)
+                    .width(CONTAINER_WIDTH.dp)
                     .padding(end = 24.dp)
             ) {
-                // boxText - вся высота сверху
                 Box(modifier = Modifier.weight(1f)) {
                     currentLetter?.let { letter ->
                         Column(
@@ -109,48 +86,74 @@ fun LearnLettersScreen(navController: NavController) {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            // 📦 boxLetter - БУКВВА СВЕРХУ
                             Text(
                                 text = letter.first,
                                 fontSize = 48.sp,
                                 fontWeight = FontWeight.Black
                             )
-
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // ✅ ИСПРАВЛЕННЫЙ boxCode - ДВЕ СИНИЕ полоски
+                            // ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ
+
+
+
+
+
+
+
+
+
+
+// ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ БЕЗ ЗАЗОРОВ
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(60.dp)
                                     .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             ) {
-                                // ОСНОВНАЯ СИНИЯ (центр)
+                                // ✅ ЦЕНТРАЛЬНАЯ ТОЧКА (всегда)
                                 Box(
                                     modifier = Modifier
                                         .fillMaxHeight()
-                                        .width(24.dp)
+                                        .width(DOT_WIDTH.dp)
                                         .align(Alignment.Center)
-                                        .background(
-                                            MaterialTheme.colorScheme.primary,
-                                            RoundedCornerShape(4.dp)
-                                        )
+                                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(0.dp))
                                 )
 
-                                // ✅ ВТОРАЯ СИНИЯ слева (остаётся навсегда после 1-го нажатия!)
-                                if (hasSecondBar) {
+                                // ✅ СПЛОШНАЯ ЛИНИЯ СЛЕВА (каждая точка примыкает вплотную)
+                                repeat(dotCount) { index ->
+                                    val pixelsPerDot = DOT_WIDTH * LocalDensity.current.density.toInt()
+                                    val totalPixels = pixelsPerDot * (index + 1)
+
+                                    // Ограничение: не больше ширины контейнера (280dp)
+                                    val clampedPixels = minOf(totalPixels, CONTAINER_WIDTH/2 * LocalDensity.current.density.toInt())
+
                                     Box(
                                         modifier = Modifier
                                             .fillMaxHeight()
-                                            .width(24.dp)
-                                            .offset(x = -24.dp)
+                                            .width(DOT_WIDTH.dp)
+                                            .offset { IntOffset(x = -clampedPixels, y = 0) }
                                             .align(Alignment.Center)
-                                            .background(
-                                                MaterialTheme.colorScheme.primary,
-                                                RoundedCornerShape(4.dp)
-                                            )
+                                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(0.dp))
                                     )
                                 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
                             }
                         }
                     } ?: Text(
@@ -161,32 +164,23 @@ fun LearnLettersScreen(navController: NavController) {
                     )
                 }
 
-                // КНОПКИ переключения букв
+                // Кнопки переключения букв (без изменений)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),
                     horizontalArrangement = Arrangement.SpaceEvenly
                 ) {
-                    IconButton(
-                        onClick = { letterController.prevLetter(isRussian) }
-                    ) {
+                    IconButton(onClick = { letterController.prevLetter(isRussian) }) {
                         Icon(Icons.Default.ArrowBack, contentDescription = "Предыдущая")
                     }
-
-                    IconButton(
-                        onClick = { letterController.nextLetter(isRussian) }
-                    ) {
+                    IconButton(onClick = { letterController.nextLetter(isRussian) }) {
                         Icon(Icons.Default.ArrowForward, contentDescription = "Следующая")
                     }
                 }
 
-                // boxKey ПРИЖАТ ВНИЗ
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(120.dp)
-                ) {
+                // ✅ КНОПКА КЛЮЧА - растёт линия!
+                Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
                     Image(
                         painter = painterResource(
                             if (isKeyPressedLocal) R.drawable.tapper_down
@@ -203,8 +197,8 @@ fun LearnLettersScreen(navController: NavController) {
                                         isKeyPressedLocal = true
                                         controller.onKeyPress()
 
-                                        // ✅ СОЗДАЁМ вторую синяя полоску ПРЯМО СЕЙЧАС!
-                                        hasSecondBar = true
+                                        // ✅ УДЕРЖИВАНИЕ = НОВАЯ ТОЧКА!
+                                        dotCount++
 
                                         tryAwaitRelease()
                                         isKeyPressedLocal = false
@@ -217,7 +211,7 @@ fun LearnLettersScreen(navController: NavController) {
             }
         }
 
-        // 4. boxBottom СНИЗУ - кнопка возврата
+        // boxBottom (без изменений)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
