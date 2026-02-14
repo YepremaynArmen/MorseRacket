@@ -22,6 +22,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.NavController
 import com.example.morseracket.R
 import com.example.morseracket.data.MorseData
@@ -29,8 +31,7 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.IntOffset
+import kotlinx.coroutines.delay
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
@@ -52,6 +53,16 @@ fun LearnLettersScreen(navController: NavController) {
     val controller = remember { MorseController() }
     var isKeyPressed by controller::isKeyPressed
     var lineOffset by controller::lineOffset
+
+    // ✅ ИСПРАВЛЕНИЕ! АНИМАЦИЯ параллельно кнопке
+    LaunchedEffect(isKeyPressedLocal) {
+        if (isKeyPressedLocal) {
+            while (isKeyPressedLocal) {
+                dotCount++
+                delay(200L)
+            }
+        }
+    }
 
     LaunchedEffect(isRussian) {
         letterController.updateLanguage(isRussian)
@@ -93,18 +104,7 @@ fun LearnLettersScreen(navController: NavController) {
                             )
                             Spacer(modifier = Modifier.height(24.dp))
 
-                            // ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ
-
-
-
-
-
-
-
-
-
-
-// ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ БЕЗ ЗАЗОРОВ
+                            // ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ БЕЗ ЗАЗОРОВ
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -137,23 +137,6 @@ fun LearnLettersScreen(navController: NavController) {
                                             .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(0.dp))
                                     )
                                 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
                             }
                         }
                     } ?: Text(
@@ -179,7 +162,7 @@ fun LearnLettersScreen(navController: NavController) {
                     }
                 }
 
-                // ✅ КНОПКА КЛЮЧА - растёт линия!
+                // ✅ КНОПКА КЛЮЧА - ИСПРАВЛЕНА!
                 Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
                     Image(
                         painter = painterResource(
@@ -197,11 +180,11 @@ fun LearnLettersScreen(navController: NavController) {
                                         isKeyPressedLocal = true
                                         controller.onKeyPress()
 
-                                        // ✅ УДЕРЖИВАНИЕ = НОВАЯ ТОЧКА!
-                                        dotCount++
+                                        // ✅ УБРАН while! Теперь LaunchedEffect наверху!
 
-                                        tryAwaitRelease()
-                                        isKeyPressedLocal = false
+                                        tryAwaitRelease()  // ждём отпускания
+
+                                        isKeyPressedLocal = false  // ← АНИМАЦИЯ останавливается!
                                         controller.onKeyRelease()
                                     }
                                 )
