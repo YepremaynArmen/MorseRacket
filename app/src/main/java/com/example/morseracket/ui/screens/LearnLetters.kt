@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -28,7 +29,9 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
-
+import androidx.compose.runtime.LaunchedEffect
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
@@ -126,7 +129,7 @@ fun LearnLettersScreen(navController: NavController) {
                                     modifier = Modifier
                                         .fillMaxHeight()
                                         .width(24.dp)
-                                        .offset(x = (140 + lineOffset).dp)
+                                        .offset(x = 140.dp)  // ФИКСИРОВАННАЯ позиция!
                                         .align(Alignment.Center)
                                         .background(
                                             MaterialTheme.colorScheme.primary,
@@ -169,9 +172,12 @@ fun LearnLettersScreen(navController: NavController) {
                         .fillMaxWidth()
                         .height(120.dp)
                 ) {
+
+
+                    var isKeyPressedLocal by remember { mutableStateOf(false) }
                     Image(
                         painter = painterResource(
-                            if (isKeyPressed) R.drawable.tapper_down
+                            if (isKeyPressedLocal) R.drawable.tapper_down
                             else R.drawable.tapper_up
                         ),
                         contentDescription = null,
@@ -182,13 +188,20 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
+                                        isKeyPressedLocal = true           // ← ВИЗУАЛ НАЖАТИЯ
                                         morseController.onKeyPress()
-                                        tryAwaitRelease()
+
+                                        tryAwaitRelease()                  // ← ЖДЁТ ОТПУСКА
+
+                                        isKeyPressedLocal = false          // ← ВИЗУАЛ ОТПУСКА
                                         morseController.onKeyRelease()
                                     }
                                 )
                             }
                     )
+
+
+
                 }
             }
         }
