@@ -2,23 +2,17 @@ package com.example.morseracket.ui.controllers
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.time.delay
 
 @Stable
 class Signal {
-    var startX by mutableFloatStateOf(-1000f)
+    var currentX by mutableFloatStateOf(350f)
     var width by mutableFloatStateOf(0f)
     var height by mutableFloatStateOf(40f)        // ✅ НОВАЯ ВЫСОТА!
     var yOffset by mutableFloatStateOf(0f)
     var color by mutableStateOf(Color.Black)
 
-    constructor(startX: Float = -1000f, width: Float = 0f, height: Float = 40f) {
-        this.startX = startX
+    constructor(startX: Float = 350f, width: Float = 0f, height: Float = 40f) {
+        this.currentX = startX
         this.width = width
         this.height = height
     }
@@ -35,41 +29,35 @@ class MorseController {
     val signals = mutableStateListOf<Signal>()  // ✅ Заменили symbols → signals
     private var pressStartTime = 0L
     private var currentSignal: Signal? = null  // ✅ Заменили currentSymbol
-
-    private var nextX = 350f
+    var shouldMoveTape by mutableStateOf(false)
+    private val FIXED_START_X = 350f
+    private var nextX = FIXED_START_X
 
     fun addSignal(signal: Signal) {
-        signal.startX = nextX  // ✅ Каждая новая на новой позиции
+        signal.currentX = FIXED_START_X
         signals.add(signal)
-        nextX += 20f  // Расстояние между полосками
+        //nextX += 20f  // Расстояние между полосками
     }
     suspend fun onKeyPress() {
+
         isKeyPressed = true
         isDrawing = true
         pressStartTime = System.currentTimeMillis()
-        tapeOffset -= 20f
-        lineOffset -= 20f
-
+        shouldMoveTape = true
         currentSignal = Signal(
-            startX = 350f ,
+            startX = nextX ,
             width = 0f,
             height = 40f
         )
         addSignal(currentSignal!!)
-
-
-/*        while (isKeyPressed) {
-            tapeOffset -= 20f
-            lineOffset -= 20f
-            currentSignal = Signal(startX = 350f, width = 0f, height = 40f)
-            addSignal(currentSignal!!)
-            delay(120L)
-       }*/
     }
 
     fun onKeyRelease() {
         isKeyPressed = false
         isDrawing = false
+        shouldMoveTape = true
+        //nextX = FIXED_START_X
+
     }
 
     fun update() {
@@ -86,6 +74,7 @@ class MorseController {
         lineOffset = 0f
         isDrawing = false
         isKeyPressed = false
-        nextX = 350f
+        shouldMoveTape = false
+        nextX = FIXED_START_X
     }
 }

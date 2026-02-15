@@ -25,7 +25,7 @@ fun MorseTape(controller: MorseController, modifier: Modifier = Modifier) {
             .clipToBounds()  // ✅ ОБРЕЗАЕТ за пределами контейнера!
     ) {
         controller.signals.forEach { signal ->
-            val left = signal.startX + controller.tapeOffset
+            val left = signal.currentX //+ controller.tapeOffset
 
             // ✅ Даже простое условие работает!
             if (left > -size.width && left < size.width * 2f) {

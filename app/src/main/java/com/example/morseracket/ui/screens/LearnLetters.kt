@@ -64,6 +64,14 @@ fun LearnLettersScreen(navController: NavController) {
             delay(16L)
         }
     }
+    LaunchedEffect(controller.shouldMoveTape) {
+        while (controller.shouldMoveTape) {
+            controller.signals.forEach { signal ->
+                signal.currentX -= 15f  // ✅ ВСЕ currentX сдвигаются!
+            }
+            delay(150L)
+        }
+    }
 
     // ✅ УДЕРЖАНИЕ КЛАВИШИ - НОВОЕ!
     LaunchedEffect(controller.isKeyPressed) {
