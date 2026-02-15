@@ -26,9 +26,11 @@ fun MorseRacketApp() {
     val navController = rememberNavController()
     NavHost(
         navController = navController,
-        startDestination = "main"
+        //startDestination = "main"
+        startDestination = "learnLetters"
     ) {
         composable("main") { MainScreen(navController) }
         composable("learnLetters") { LearnLettersScreen(navController) }
+
     }
 }

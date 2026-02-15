@@ -2,6 +2,7 @@ package com.example.morseracket.ui.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,11 +20,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.platform.LocalDensity
 import androidx.navigation.NavController
 import com.example.morseracket.R
 import com.example.morseracket.data.MorseData
@@ -31,46 +29,62 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
+import com.example.morseracket.ui.components.MorseTape
+import com.example.morseracket.ui.controllers.Signal
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
     var isRussian by remember { mutableStateOf(false) }
-    var isKeyPressedLocal by remember { mutableStateOf(false) }
-
-    // ✅ КОНСТАНТЫ для линии Морзе
     val CONTAINER_WIDTH = 280
-    val DOT_WIDTH = 25
-    val GAP = 0.dp  // расстояние между точками
 
     val letterController = remember { LetterController() }
-    val morseController = remember { MorseController() }
-
-    // ✅ Состояние для НАКОПЛЕНИЯ точек (удержание ключа)
-    var dotCount by remember { mutableStateOf(0) }
+    val controller = remember { MorseController() }
+    val coroutineScope = rememberCoroutineScope()
+    var repeatJob by remember { mutableStateOf<Job?>(null) }
 
     val currentLetter by letterController.currentLetter.collectAsState()
-    val controller = remember { MorseController() }
-    var isKeyPressed by controller::isKeyPressed
-    var lineOffset by controller::lineOffset
-
-    // ✅ ИСПРАВЛЕНИЕ! АНИМАЦИЯ параллельно кнопке
-    LaunchedEffect(isKeyPressedLocal) {
-        if (isKeyPressedLocal) {
-            while (isKeyPressedLocal) {
-                dotCount++
-                delay(200L)
-            }
-        }
-    }
+    val isKeyPressed by controller::isKeyPressed
 
     LaunchedEffect(isRussian) {
         letterController.updateLanguage(isRussian)
     }
+    LaunchedEffect(Unit) {
+        controller.restart()
+    }
+
+    // ✅ АНИМАЦИЯ ширины
+    LaunchedEffect(controller.isDrawing) {
+        while (controller.isDrawing) {
+            controller.update()
+            delay(16L)
+        }
+    }
+
+    // ✅ УДЕРЖАНИЕ КЛАВИШИ - НОВОЕ!
+    LaunchedEffect(controller.isKeyPressed) {
+        if (controller.isKeyPressed) {
+            repeatJob?.cancel()
+            repeatJob = coroutineScope.launch {
+                delay(250L) // Пауза перед повтором
+                while (controller.isKeyPressed) {
+                    controller.tapeOffset -= 20f
+                    controller.lineOffset -= 20f
+
+                    val newSignal = Signal(startX = 350f, width = 0f, height = 40f)
+                    controller.addSignal(newSignal)
+
+                    delay(120L) // Новая полоска каждые 120мс
+                }
+            }
+        }
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // ... boxTop без изменений ...
-
         Row(modifier = Modifier.weight(1f)) {
             LazyColumn(
                 modifier = Modifier
@@ -103,51 +117,17 @@ fun LearnLettersScreen(navController: NavController) {
                                 fontWeight = FontWeight.Black
                             )
                             Spacer(modifier = Modifier.height(24.dp))
-
-                            // ✅ ДИНАМИЧЕСКАЯ ЛИНИЯ МОРЗЕ БЕЗ ЗАЗОРОВ
-                            Box(
+                            MorseTape(
+                                controller = controller,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(60.dp)
                                     .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
-                            ) {
-                                // ✅ ЦЕНТРАЛЬНАЯ ТОЧКА (всегда)
-                                Box(
-                                    modifier = Modifier
-                                        .fillMaxHeight()
-                                        .width(DOT_WIDTH.dp)
-                                        .align(Alignment.Center)
-                                        .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(0.dp))
-                                )
-
-                                // ✅ СПЛОШНАЯ ЛИНИЯ СЛЕВА (каждая точка примыкает вплотную)
-                                repeat(dotCount) { index ->
-                                    val pixelsPerDot = DOT_WIDTH * LocalDensity.current.density.toInt()
-                                    val totalPixels = pixelsPerDot * (index + 1)
-
-                                    // Ограничение: не больше ширины контейнера (280dp)
-                                    val clampedPixels = minOf(totalPixels, CONTAINER_WIDTH/2 * LocalDensity.current.density.toInt())
-
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxHeight()
-                                            .width(DOT_WIDTH.dp)
-                                            .offset { IntOffset(x = -clampedPixels, y = 0) }
-                                            .align(Alignment.Center)
-                                            .background(MaterialTheme.colorScheme.primary, RoundedCornerShape(0.dp))
-                                    )
-                                }
-                            }
+                            )
                         }
-                    } ?: Text(
-                        text = "ПРАВАЯ\nПАНЕЛЬ",
-                        fontSize = 16.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.align(Alignment.Center)
-                    )
+                    }
                 }
 
-                // Кнопки переключения букв (без изменений)
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -162,11 +142,18 @@ fun LearnLettersScreen(navController: NavController) {
                     }
                 }
 
-                // ✅ КНОПКА КЛЮЧА - ИСПРАВЛЕНА!
+                // ✅ КНОПКА с УДЕРЖАНИЕМ
                 Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
+                    Text(
+                        text = "🔄",
+                        modifier = Modifier
+                            .padding(16.dp)
+                            .background(Color.LightGray)
+                            .clickable { controller.restart() }
+                    )
                     Image(
                         painter = painterResource(
-                            if (isKeyPressedLocal) R.drawable.tapper_down
+                            if (isKeyPressed) R.drawable.tapper_down
                             else R.drawable.tapper_up
                         ),
                         contentDescription = null,
@@ -177,24 +164,26 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
-                                        isKeyPressedLocal = true
                                         controller.onKeyPress()
+                                        repeatJob?.cancel()
 
-                                        // ✅ УБРАН while! Теперь LaunchedEffect наверху!
+                                        // ✅ Ждем отпускания БЕЗ onRelease
+                                        try {
+                                            tryAwaitRelease()  // БЛОКИРУЕТ до отпускания
+                                        } catch (e: CancellationException) {
+                                            // Отмена жеста
+                                        }
 
-                                        tryAwaitRelease()  // ждём отпускания
-
-                                        isKeyPressedLocal = false  // ← АНИМАЦИЯ останавливается!
                                         controller.onKeyRelease()
                                     }
                                 )
                             }
+
                     )
                 }
             }
         }
 
-        // boxBottom (без изменений)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
