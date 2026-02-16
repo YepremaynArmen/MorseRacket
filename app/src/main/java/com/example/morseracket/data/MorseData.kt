@@ -1,5 +1,7 @@
 package com.example.morseracket.data
 
+
+
 object MorseData {
     val LATIN_LETTERS = listOf(
         "A" to ".-", "B" to "—···", "C" to "—·—·", "D" to "—··", "E" to ".",
@@ -20,3 +22,4 @@ object MorseData {
         "Э" to "··—··", "Ю" to "··———", "Я" to "·——·"
     )
 }
+

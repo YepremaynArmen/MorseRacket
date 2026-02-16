@@ -2,40 +2,70 @@ package com.example.morseracket.ui.components
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Path
 import com.example.morseracket.ui.controllers.MorseController
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 
 @Composable
-fun MorseTape(controller: MorseController, modifier: Modifier = Modifier) {
+fun MorseTape(
+    controller: MorseController,
+    modifier: Modifier = Modifier
+) {
     Canvas(
         modifier = modifier
-            .clipToBounds()  // ✅ ОБРЕЗАЕТ за пределами контейнера!
+            .fillMaxSize()
+            .background(Color(0xFF2F1B14).copy(alpha = 0.2f))
     ) {
-        controller.signals.forEach { signal ->
-            val left = signal.currentX //+ controller.tapeOffset
+        val vintagePaper = Color(0xFFF5E8C7).copy(alpha = 0.7f)
+        val agedYellow = Color(0xFFD4AF37)
+        val paperNoise = Color(0xFF8B7355).copy(alpha = 0.15f)
+        val centerY = size.height / 2f - 20f
 
-            // ✅ Даже простое условие работает!
-            if (left > -size.width && left < size.width * 2f) {
-                drawRect(
-                    color = signal.color,
-                    topLeft = Offset(left, size.height / 2f - signal.height / 2f),
-                    size = Size(signal.width.coerceAtLeast(30f), signal.height)
-                )
+
+        // Бронзовая черта — по центру!
+        drawLine(
+            color = Color(0xFF8B4513),
+            start = Offset(350f, centerY - 20f),
+            end = Offset(350f, centerY + 20f + 40f),
+            strokeWidth = 6f
+        )
+
+        // Неровные края — по центру!
+        val path = Path().apply {
+            moveTo(355f, centerY - 20f)
+            for (i in 0..20) {
+                val noise = (kotlin.math.sin(i * 0.5f) * 3f).toFloat()
+                relativeLineTo(15f, noise)
+            }
+            lineTo(355f, centerY + 20f + 40f)
+            close()
+        }
+        drawPath(path, color = Color(0xFF8B4513).copy(alpha = 0.4f))
+
+        // ✅ ЛЕНТА — ПРЕЖНЯЯ ЯРКОСТЬ + ЧЕРНЫЙ ПРОБОЙ!
+// В цикле signals — замените БЛОК полностью:
+        controller.signals.forEachIndexed { index, signal ->
+            val left = signal.currentX + controller.tapeOffset
+            if (left > 0f && left < size.width - 20f) {
+                val centerY = size.height / 2f - 20f
+
+
+                drawRect(color = vintagePaper, topLeft = Offset(left, centerY), size = Size(signal.width, signal.height))
+                drawRect(color = paperNoise, topLeft = Offset(left + 1f, centerY + 1f), size = Size(signal.width * 0.9f, signal.height * 0.7f))
+
+                // БОЛЬШОЙ ЧЕРНЫЙ!
+                drawRect(color = signal.color, topLeft = Offset(left + 2f, centerY + 2f), size = Size(signal.width * 0.7f, signal.height * 0.6f))
+
             }
         }
+
+
+        // Пыль
+        drawRect(color = Color.Gray.copy(alpha = 0.05f), topLeft = Offset(0f, 0f), size = size)
     }
 }
-

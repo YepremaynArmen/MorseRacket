@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,12 +31,10 @@ import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
 import com.example.morseracket.ui.components.MorseTape
-import com.example.morseracket.ui.controllers.Signal
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
@@ -49,48 +48,31 @@ fun LearnLettersScreen(navController: NavController) {
 
     val currentLetter by letterController.currentLetter.collectAsState()
     val isKeyPressed by controller::isKeyPressed
+    val delayTime = 100L
+
 
     LaunchedEffect(isRussian) {
         letterController.updateLanguage(isRussian)
     }
+
     LaunchedEffect(Unit) {
-        controller.restart()
+        controller.initSignals()  // 1000 желтых полосок касательно справа от 350f!
     }
 
-    // ✅ АНИМАЦИЯ ширины
+    LaunchedEffect(controller.shouldMoveTape) {
+        while (controller.shouldMoveTape) {
+            controller.tapeOffset -= 10f
+            delay(50L)
+        }
+    }
+
     LaunchedEffect(controller.isDrawing) {
         while (controller.isDrawing) {
-            controller.update()
+            controller.update()  // Анимация ширины
             delay(16L)
         }
     }
-    LaunchedEffect(controller.shouldMoveTape) {
-        while (controller.shouldMoveTape) {
-            controller.signals.forEach { signal ->
-                signal.currentX -= 15f  // ✅ ВСЕ currentX сдвигаются!
-            }
-            delay(150L)
-        }
-    }
 
-    // ✅ УДЕРЖАНИЕ КЛАВИШИ - НОВОЕ!
-    LaunchedEffect(controller.isKeyPressed) {
-        if (controller.isKeyPressed) {
-            repeatJob?.cancel()
-            repeatJob = coroutineScope.launch {
-                delay(250L) // Пауза перед повтором
-                while (controller.isKeyPressed) {
-                    controller.tapeOffset -= 20f
-                    controller.lineOffset -= 20f
-
-                    val newSignal = Signal(startX = 350f, width = 0f, height = 40f)
-                    controller.addSignal(newSignal)
-
-                    delay(120L) // Новая полоска каждые 120мс
-                }
-            }
-        }
-    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f)) {
@@ -112,6 +94,7 @@ fun LearnLettersScreen(navController: NavController) {
                     .width(CONTAINER_WIDTH.dp)
                     .padding(end = 24.dp)
             ) {
+                // ✅ БОБИНА ТЕЛЕГРАФНОЙ ЛЕНТЫ 📜 (60dp высота)
                 Box(modifier = Modifier.weight(1f)) {
                     currentLetter?.let { letter ->
                         Column(
@@ -159,9 +142,11 @@ fun LearnLettersScreen(navController: NavController) {
                             .background(Color.LightGray)
                             .clickable { controller.restart() }
                     )
+
+
                     Image(
                         painter = painterResource(
-                            if (isKeyPressed) R.drawable.tapper_down
+                            if (controller.isKeyPressed) R.drawable.tapper_down
                             else R.drawable.tapper_up
                         ),
                         contentDescription = null,
@@ -172,22 +157,27 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
-                                        controller.onKeyPress()
+                                        controller.onKeyPress()           // 👈 НАЖАТИЕ
+                                        controller.shouldMoveTape = true
+
                                         repeatJob?.cancel()
 
-                                        // ✅ Ждем отпускания БЕЗ onRelease
                                         try {
-                                            tryAwaitRelease()  // БЛОКИРУЕТ до отпускания
+                                            tryAwaitRelease()             // ⏳ ЖДЕТ отпускания...
                                         } catch (e: CancellationException) {
-                                            // Отмена жеста
+                                            // ...
                                         }
 
-                                        controller.onKeyRelease()
+                                        controller.onKeyRelease()         // 👈 ОТПУСКАНИЕ — ЗДЕСЬ!
+                                        controller.shouldMoveTape = false
                                     }
                                 )
                             }
 
                     )
+
+
+
                 }
             }
         }

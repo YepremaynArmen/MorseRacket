@@ -1,63 +1,65 @@
 package com.example.morseracket.ui.controllers
 
+import Signal
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-
-@Stable
-class Signal {
-    var currentX by mutableFloatStateOf(350f)
-    var width by mutableFloatStateOf(0f)
-    var height by mutableFloatStateOf(40f)        // ✅ НОВАЯ ВЫСОТА!
-    var yOffset by mutableFloatStateOf(0f)
-    var color by mutableStateOf(Color.Black)
-
-    constructor(startX: Float = 350f, width: Float = 0f, height: Float = 40f) {
-        this.currentX = startX
-        this.width = width
-        this.height = height
-    }
-}
 
 
 @Stable
 class MorseController {
-    var tapeOffset by mutableFloatStateOf(0f)
     var lineOffset by mutableFloatStateOf(0f)
     var isDrawing by mutableStateOf(false)
-    var isKeyPressed by mutableStateOf(false)
 
     val signals = mutableStateListOf<Signal>()  // ✅ Заменили symbols → signals
     private var pressStartTime = 0L
     private var currentSignal: Signal? = null  // ✅ Заменили currentSymbol
+    var isKeyPressed by mutableStateOf(false)      // ✅ ОБЯЗАТЕЛЬНО mutableStateOf
     var shouldMoveTape by mutableStateOf(false)
-    private val FIXED_START_X = 350f
-    private var nextX = FIXED_START_X
+    var tapeOffset by mutableStateOf(0f)
+    private val FIXED_START_X = 325f
 
-    fun addSignal(signal: Signal) {
-        signal.currentX = FIXED_START_X
-        signals.add(signal)
-        //nextX += 20f  // Расстояние между полосками
+    var activeSignalIndex by mutableStateOf(-1)  // -1 = не активен
+
+
+    // 📁 MorseController.kt — добавьте ВНУТРЬ класса MorseController:
+
+    fun initSignals() {
+        signals.clear()
+        val stripWidth = 2f
+        val stripHeight = 40f
+        var currentX = FIXED_START_X
+
+        repeat(1000) { i ->
+            val signal = Signal(currentX, stripWidth, stripHeight, 20f)  // ✅ Работает!
+            if (i % 100 == 0) signal.width = 4f  // ✅ var width меняется!
+            signals.add(signal)
+            currentX += stripWidth
+        }
     }
-    suspend fun onKeyPress() {
 
+    fun setActiveSignalColor(isActive: Boolean) {
+        val centerX = 325f
+        signals.forEach { signal ->
+            val signalCenter = signal.currentX + tapeOffset + signal.width / 2f
+            if (signalCenter >= centerX - 10f && signalCenter <= centerX + 10f) {
+                signal.color = if (isActive) Color.Black else Color(0xFFD4AF37)
+            }
+        }
+    }
+
+    fun onKeyPress() {
         isKeyPressed = true
+        shouldMoveTape = true
         isDrawing = true
         pressStartTime = System.currentTimeMillis()
-        shouldMoveTape = true
-        currentSignal = Signal(
-            startX = nextX ,
-            width = 0f,
-            height = 40f
-        )
-        addSignal(currentSignal!!)
+        setActiveSignalColor(true)
     }
 
     fun onKeyRelease() {
         isKeyPressed = false
+        shouldMoveTape = false
         isDrawing = false
-        shouldMoveTape = true
-        //nextX = FIXED_START_X
-
+        setActiveSignalColor(false)  // ✅ Желтый!
     }
 
     fun update() {
@@ -66,15 +68,15 @@ class MorseController {
             it.width = ((System.currentTimeMillis() - pressStartTime) / 200f).coerceAtMost(140f)
         }
     }
-
-
     fun restart() {
-        signals.clear()  // ✅ signals вместо symbols
-        tapeOffset = 0f
+        signals.clear()        // ✅ Очищаем старую ленту
+        tapeOffset = 0f        // ✅ Сбрасываем позицию
         lineOffset = 0f
         isDrawing = false
         isKeyPressed = false
         shouldMoveTape = false
-        nextX = FIXED_START_X
+
+        initSignals()          // ✅ Создаем новую ленту!
     }
+
 }
