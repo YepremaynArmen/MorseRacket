@@ -34,7 +34,7 @@ import com.example.morseracket.ui.components.MorseTape
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlin.coroutines.cancellation.CancellationException
-
+import com.example.morseracket.ui.Vars
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
@@ -47,8 +47,6 @@ fun LearnLettersScreen(navController: NavController) {
     var repeatJob by remember { mutableStateOf<Job?>(null) }
 
     val currentLetter by letterController.currentLetter.collectAsState()
-    val isKeyPressed by controller::isKeyPressed
-    val delayTime = 100L
 
 
     LaunchedEffect(isRussian) {
@@ -59,20 +57,18 @@ fun LearnLettersScreen(navController: NavController) {
         controller.initSignals()  // 1000 желтых полосок касательно справа от 350f!
     }
 
-    LaunchedEffect(controller.shouldMoveTape) {
-        while (controller.shouldMoveTape) {
-            controller.tapeOffset -= 10f
-            delay(50L)
-        }
-    }
-
-    LaunchedEffect(controller.isDrawing) {
-        while (controller.isDrawing) {
+    LaunchedEffect(controller.isKeyPressed, controller.isDrawing, controller.shouldMoveTape) {
+        if (controller.isKeyPressed && controller.shouldMoveTape) {
+            // Движение точки/тире
+            controller.tapeOffset -= Vars.tapeOffset
             controller.update()  // Анимация ширины
-            delay(16L)
+            delay(Vars.moveDelay)
+        } else if (!controller.isKeyPressed) {
+            // Пробел — ОДИН раз
+            controller.tapeOffset -= Vars.signalWidth
+            delay(Vars.moveDelay)
         }
     }
-
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f)) {

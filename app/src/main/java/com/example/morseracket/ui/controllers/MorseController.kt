@@ -1,8 +1,9 @@
 package com.example.morseracket.ui.controllers
 
-import Signal
+import com.example.morseracket.data.Signal
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import com.example.morseracket.ui.Vars
 
 
 @Stable
@@ -16,7 +17,7 @@ class MorseController {
     var isKeyPressed by mutableStateOf(false)      // ✅ ОБЯЗАТЕЛЬНО mutableStateOf
     var shouldMoveTape by mutableStateOf(false)
     var tapeOffset by mutableStateOf(0f)
-    private val FIXED_START_X = 325f
+    //private val FIXED_START_X = 325f
 
     var activeSignalIndex by mutableStateOf(-1)  // -1 = не активен
 
@@ -25,26 +26,30 @@ class MorseController {
 
     fun initSignals() {
         signals.clear()
-        val stripWidth = 2f
-        val stripHeight = 40f
-        var currentX = FIXED_START_X
+        var currentX = Vars.FIXED_START_X
 
         repeat(1000) { i ->
-            val signal = Signal(currentX, stripWidth, stripHeight, 20f)  // ✅ Работает!
-            if (i % 100 == 0) signal.width = 4f  // ✅ var width меняется!
+            val signal = Signal(currentX, Vars.signalWidth, Vars.signalHeight, 20f)  // ✅ Работает!
+            if (i % 100 == 0)  signal.width = Vars.signalWidth
             signals.add(signal)
-            currentX += stripWidth
+            currentX += Vars.signalWidth
         }
     }
 
     fun setActiveSignalColor(isActive: Boolean) {
         val centerX = 325f
         signals.forEach { signal ->
-            val signalCenter = signal.currentX + tapeOffset + signal.width / 2f
-            if (signalCenter >= centerX - 10f && signalCenter <= centerX + 10f) {
-                signal.color = if (isActive) Color.Black else Color(0xFFD4AF37)
+            val signalCenter = signal.startX + tapeOffset //+ signal.width / 2f
+            //val signalCenter = signal.startX
+            if (signalCenter >= centerX - 10f && signalCenter <= centerX + 10f)
+            {
+                signal.color = Color.Black//if (isActive) Color.Black else Color(0xFFD4AF37)
             }
         }
+    }
+
+    private fun addSpace() {
+        tapeOffset -= Vars.tapeOffset
     }
 
     fun onKeyPress() {
@@ -59,7 +64,8 @@ class MorseController {
         isKeyPressed = false
         shouldMoveTape = false
         isDrawing = false
-        setActiveSignalColor(false)  // ✅ Желтый!
+        //addSpace()
+        //setActiveSignalColor(false)  // ✅ Желтый!
     }
 
     fun update() {
