@@ -28,25 +28,41 @@ class MorseController {
         signals.clear()
         var currentX = Vars.FIXED_START_X
 
-        repeat(1000) { i ->
-            val signal = Signal(currentX, Vars.signalWidth, Vars.signalHeight, 20f)  // ✅ Работает!
-            if (i % 100 == 0)  signal.width = Vars.signalWidth
+        repeat(100) { _ ->  // НЕ используем i
+            val signal = Signal(
+                startX = currentX,
+                width = Vars.signalWidth,      // ✅ ФИКСИРОВАННАЯ ширина
+                height = Vars.signalHeight,
+                color = Color(0xFFD4AF37)     // ✅ ЖЁЛТЫЙ!
+            )
             signals.add(signal)
-            currentX += Vars.signalWidth
+            currentX += Vars.signalWidth      // ✅ РАВНЫЕ шаги!
         }
     }
 
-    fun setActiveSignalColor(isActive: Boolean) {
-        val centerX = 325f
+
+    fun setActiveSignalColor() {
+        val screenCenter = 400f
+
         signals.forEach { signal ->
-            val signalCenter = signal.startX + tapeOffset //+ signal.width / 2f
-            //val signalCenter = signal.startX
-            if (signalCenter >= centerX - 10f && signalCenter <= centerX + 10f)
-            {
-                signal.color = Color.Black//if (isActive) Color.Black else Color(0xFFD4AF37)
+            val left = signal.startX + tapeOffset
+            // ✅ tolerance = signalWidth * 1.5 вместо 1!
+            if (left >= screenCenter - Vars.signalWidth/2
+                && left <= screenCenter + Vars.signalWidth/2
+            ) {
+                signal.color = Color.Black  // Красим ВСЕ в зоне!
             }
         }
     }
+
+
+
+
+
+
+
+
+
 
     private fun addSpace() {
         tapeOffset -= Vars.tapeOffset
@@ -57,7 +73,7 @@ class MorseController {
         shouldMoveTape = true
         isDrawing = true
         pressStartTime = System.currentTimeMillis()
-        setActiveSignalColor(true)
+        setActiveSignalColor()
     }
 
     fun onKeyRelease() {

@@ -57,18 +57,30 @@ fun LearnLettersScreen(navController: NavController) {
         controller.initSignals()  // 1000 желтых полосок касательно справа от 350f!
     }
 
-    LaunchedEffect(controller.isKeyPressed, controller.isDrawing, controller.shouldMoveTape) {
-        if (controller.isKeyPressed && controller.shouldMoveTape) {
-            // Движение точки/тире
-            controller.tapeOffset -= Vars.tapeOffset
-            controller.update()  // Анимация ширины
-            delay(Vars.moveDelay)
-        } else if (!controller.isKeyPressed) {
-            // Пробел — ОДИН раз
+    LaunchedEffect(controller.isKeyPressed) {
+        val pressTime = System.currentTimeMillis()
+
+        while (controller.isKeyPressed) {
             controller.tapeOffset -= Vars.signalWidth
-            delay(Vars.moveDelay)
+            controller.update()
+
+            // ✅ Покраска ТОЛЬКО по времени удержания!
+            val holdTime = System.currentTimeMillis() - pressTime
+            if (holdTime > 100L) {  // После 100ms = ТИРЕ
+                controller.setActiveSignalColor()
+            }
+
+            delay(200L)
         }
+
+        // Пробел
+        controller.tapeOffset -= Vars.signalWidth
+        delay(200L)
     }
+
+
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f)) {

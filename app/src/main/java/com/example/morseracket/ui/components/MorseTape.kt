@@ -51,6 +51,7 @@ fun MorseTape(
 // В цикле signals — замените БЛОК полностью:
         controller.signals.forEachIndexed { index, signal ->
             val left = signal.startX + controller.tapeOffset
+            println("Signal $index: left=$left, ${if (signal.color == Color.Black) "BLACK" else "YELLOW"}")
             if (left > 0f && left < size.width - 20f) {
                 val centerY = size.height / 2f - 10f
 // ✅ 1. СНАЧАЛА СИГНАЛ (черный слой)
