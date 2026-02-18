@@ -1,9 +1,15 @@
 package com.example.morseracket.ui
 
+import androidx.compose.ui.graphics.Color
+
 object Vars {
-    val FIXED_START_X = 400f//325f
-    val signalWidth = 40f
-    val signalHeight = 40f
-    val tapeOffset = 10f
-    val moveDelay  = 50L
+    const val FIXED_START_X = 355f
+    const val signalOffset = 5f
+    const val signalWidth = 40f
+    const val signalHeight = 40f
+    val signalColor = Color.Black
+    const val signalYOffset = 10f
+    val moveDelay  = 100L
+
+    const val tapeLength = 2000f  // ✅ Длина ленты!
 }

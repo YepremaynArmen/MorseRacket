@@ -53,29 +53,23 @@ fun LearnLettersScreen(navController: NavController) {
         letterController.updateLanguage(isRussian)
     }
 
-    LaunchedEffect(Unit) {
-        controller.initSignals()  // 1000 желтых полосок касательно справа от 350f!
-    }
 
     LaunchedEffect(controller.isKeyPressed) {
         val pressTime = System.currentTimeMillis()
 
         while (controller.isKeyPressed) {
             controller.tapeOffset -= Vars.signalWidth
-            controller.update()
+            controller.updateTape()
 
             // ✅ Покраска ТОЛЬКО по времени удержания!
             val holdTime = System.currentTimeMillis() - pressTime
-            if (holdTime > 100L) {  // После 100ms = ТИРЕ
-                controller.setActiveSignalColor()
-            }
 
-            delay(200L)
+            delay(Vars.moveDelay)
         }
 
         // Пробел
         controller.tapeOffset -= Vars.signalWidth
-        delay(200L)
+        delay(Vars.moveDelay)
     }
 
 
@@ -166,7 +160,7 @@ fun LearnLettersScreen(navController: NavController) {
                                 detectTapGestures(
                                     onPress = {
                                         controller.onKeyPress()           // 👈 НАЖАТИЕ
-                                        controller.shouldMoveTape = true
+                                        //controller.shouldMoveTape = true
 
                                         repeatJob?.cancel()
 
@@ -177,7 +171,7 @@ fun LearnLettersScreen(navController: NavController) {
                                         }
 
                                         controller.onKeyRelease()         // 👈 ОТПУСКАНИЕ — ЗДЕСЬ!
-                                        controller.shouldMoveTape = false
+                                        //controller.shouldMoveTape = false
                                     }
                                 )
                             }

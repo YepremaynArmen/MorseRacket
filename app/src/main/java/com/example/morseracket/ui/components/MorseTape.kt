@@ -6,9 +6,12 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipRect
+import com.example.morseracket.ui.Vars
 import com.example.morseracket.ui.controllers.MorseController
 
 @Composable
@@ -19,67 +22,65 @@ fun MorseTape(
     Canvas(
         modifier = modifier
             .fillMaxSize()
-            .background(Color(0xFF2F1B14).copy(alpha = 0.2f))
+            .background(Color(0xFF2F1B14).copy(alpha = 0.2f))  // ✅ ФОН бобины!
     ) {
-/*        val vintagePaper = Color(0xFFF5E8C7).copy(alpha = 0.7f)
-        val agedYellow = Color(0xFFD4AF37)
-        val paperNoise = Color(0xFF8B7355).copy(alpha = 0.15f)*/
         val centerY = size.height / 2f - 20f
 
+        // ✅ ОБРЕЗАЕМ ВСЕ рисование пределами бобины!
+        clipRect(
+            left = 0f,
+            top = 0f,
+            right = size.width,
+            bottom = size.height
 
-        // Бронзовая черта — по центру!
-        drawLine(
-            color = Color(0xFF8B4513),
-            start = Offset(350f, centerY - 20f),
-            end = Offset(350f, centerY + 20f + 40f),
-            strokeWidth = 6f
-        )
+        ) {
+            // 1. ЖЕЛТАЯ ЛЕНТА
+            val tapeLeft = Vars.FIXED_START_X + controller.tapeOffset
+            val tapeRight = controller.tapeOffset + size.width * 2f
+            drawRect(
+                color = Color(0xFFD4AF37).copy(alpha = 0.9f),
+                topLeft = Offset(tapeLeft, centerY - 25f),
+                size = Size(tapeRight - tapeLeft, 90f)
+            )
 
-        // Неровные края — по центру!
-        val path = Path().apply {
-            moveTo(355f, centerY - 20f)
-            for (i in 0..20) {
-                val noise = (kotlin.math.sin(i * 0.5f) * 3f)
-                relativeLineTo(15f, noise)
+            // 2. Бронзовая черта
+            drawLine(
+                color = Color(0xFF8B4513),
+                start = Offset(Vars.FIXED_START_X, centerY - 20f),
+                end = Offset(Vars.FIXED_START_X, centerY + 20f + Vars.signalHeight),
+                strokeWidth = 6f
+            )
+
+            // 3. Неровные края
+            val path = Path().apply {
+                moveTo(Vars.FIXED_START_X + 5f, centerY - 20f)
+                for (i in 0..20) {
+                    val noise = (kotlin.math.sin(i * 0.5f) * 3f)
+                    relativeLineTo(15f, noise)
+                }
+                lineTo(Vars.FIXED_START_X + 5f, centerY + 20f + Vars.signalHeight)
+                close()
             }
-            lineTo(355f, centerY + 20f + 40f)
-            close()
-        }
-        drawPath(path, color = Color(0xFF8B4513).copy(alpha = 0.4f))
+            drawPath(path, color = Color(0xFF8B4513).copy(alpha = 0.4f))
 
-        // ✅ ЛЕНТА — ПРЕЖНЯЯ ЯРКОСТЬ + ЧЕРНЫЙ ПРОБОЙ!
-// В цикле signals — замените БЛОК полностью:
-        controller.signals.forEachIndexed { index, signal ->
-            val left = signal.startX + controller.tapeOffset
-            println("Signal $index: left=$left, ${if (signal.color == Color.Black) "BLACK" else "YELLOW"}")
-            if (left > 0f && left < size.width - 20f) {
-                val centerY = size.height / 2f - 10f
-// ✅ 1. СНАЧАЛА СИГНАЛ (черный слой)
-                drawRect(
-                    color = signal.color,  // Color.Black или Color(0xFF1A1A1A)
-                    topLeft = Offset(left, centerY),
-                    size = Size(signal.width * 1f, signal.height * 1f)
-                )
+            // 4. ЧЕРНЫЕ сигналы
 
-// ✅ 2. ПОТОМ бумага (сверху)
-/*                drawRect(
-                    color = vintagePaper,
-                    topLeft = Offset(left + 1f, centerY + 1f),
-                    size = Size(signal.width * 0.85f, signal.height * 0.85f)
-                )*/
+            controller.signals.forEachIndexed { index, signal ->
+                // ✅ Сигналы уже в абсолютных координатах!
+                val left = signal.xHead
+                val width = signal.xTail - signal.xHead
 
-// ✅ 3. Шум (последним)
-/*                drawRect(
-                    color = paperNoise,
-                    topLeft = Offset(left + 2f, centerY + 2f),
-                    size = Size(signal.width * 0.8f, signal.height * 0.8f)
-                )*/
+                println("🔍 Signal[$index]: xHead=${"%.1f".format(signal.xHead)}, xTail=${"%.1f".format(signal.xTail)}, width=${"%.1f".format(width)}, left=${"%.1f".format(left)}, tapeOffset=${"%.1f".format(controller.tapeOffset)}")
 
+                if (left > 0f && left < size.width && width > 0f) {
+                    val signalY = size.height / 2f - Vars.signalYOffset
+                    drawRect(
+                        color = Vars.signalColor,
+                        topLeft = Offset(left, signalY),
+                        size = Size(width, Vars.signalHeight)
+                    )
+                }
             }
         }
-
-
-        // Пыль
-       // drawRect(color = Color.Gray.copy(alpha = 0.05f), topLeft = Offset(0f, 0f), size = size)
     }
 }
