@@ -58,8 +58,9 @@ fun LearnLettersScreen(navController: NavController) {
         val pressTime = System.currentTimeMillis()
 
         while (controller.isKeyPressed) {
-            controller.tapeOffset -= Vars.signalWidth
-            controller.updateTape()
+            //controller.tapeOffset -= Vars.signalWidth
+            //controller.updateTape()
+            //controller.moveTape()
 
             // ✅ Покраска ТОЛЬКО по времени удержания!
             val holdTime = System.currentTimeMillis() - pressTime
@@ -68,12 +69,17 @@ fun LearnLettersScreen(navController: NavController) {
         }
 
         // Пробел
-        controller.tapeOffset -= Vars.signalWidth
+        //controller.tapeOffset -= Vars.signalWidth
         delay(Vars.moveDelay)
     }
 
 
-
+    LaunchedEffect(Unit) {
+        while (true) {
+            controller.updateTape()  // 60 FPS!
+            kotlinx.coroutines.delay(200)
+        }
+    }
 
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -137,14 +143,23 @@ fun LearnLettersScreen(navController: NavController) {
 
                 // ✅ КНОПКА с УДЕРЖАНИЕМ
                 Box(modifier = Modifier.fillMaxWidth().height(120.dp)) {
-                    Text(
-                        text = "🔄",
-                        modifier = Modifier
-                            .padding(16.dp)
-                            .background(Color.LightGray)
-                            .clickable { controller.restart() }
-                    )
+                    Column {
+                        Text(
+                            text = "🔄",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .background(Color.LightGray)
+                                .clickable { controller.restart() }
+                        )
 
+                        Text(
+                            text = "лента",
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .background(Color.LightGray)
+                                .clickable { controller.moveTape() }
+                        )
+                    }
 
                     Image(
                         painter = painterResource(
@@ -159,19 +174,9 @@ fun LearnLettersScreen(navController: NavController) {
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
-                                        controller.onKeyPress()           // 👈 НАЖАТИЕ
-                                        //controller.shouldMoveTape = true
-
-                                        repeatJob?.cancel()
-
-                                        try {
-                                            tryAwaitRelease()             // ⏳ ЖДЕТ отпускания...
-                                        } catch (e: CancellationException) {
-                                            // ...
-                                        }
-
-                                        controller.onKeyRelease()         // 👈 ОТПУСКАНИЕ — ЗДЕСЬ!
-                                        //controller.shouldMoveTape = false
+                                        controller.onKeyPress()
+                                        tryAwaitRelease()
+                                        controller.onKeyRelease()
                                     }
                                 )
                             }

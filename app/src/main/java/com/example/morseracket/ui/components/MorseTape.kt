@@ -19,6 +19,7 @@ fun MorseTape(
     controller: MorseController,
     modifier: Modifier = Modifier
 ) {
+
     Canvas(
         modifier = modifier
             .fillMaxSize()
@@ -35,12 +36,31 @@ fun MorseTape(
 
         ) {
             // 1. ЖЕЛТАЯ ЛЕНТА
-            val tapeLeft = Vars.FIXED_START_X + controller.tapeOffset
+            /*var firstOffset = 0f
+            if (controller.signals.size == 0)
+                firstOffset = Vars.signalWidth*2
+
+            val tapeLeft = Vars.FIXED_START_X + controller.tapeOffset - firstOffset
             val tapeRight = controller.tapeOffset + size.width * 2f
             drawRect(
                 color = Color(0xFFD4AF37).copy(alpha = 0.9f),
                 topLeft = Offset(tapeLeft, centerY - 25f),
                 size = Size(tapeRight - tapeLeft, 90f)
+            )*/
+
+            val centerY = size.height / 2f
+
+            // ✅ Рисуем Tape объект из controller.tape
+            drawRect(
+                color = controller.tape.color,
+                topLeft = Offset(
+                    x = controller.tape.xStart,
+                    y = centerY - controller.tape.height / 2
+                ),
+                size = Size(
+                    width = controller.tape.width,
+                    height = controller.tape.height
+                )
             )
 
             // 2. Бронзовая черта
@@ -72,14 +92,16 @@ fun MorseTape(
 
                 println("🔍 Signal[$index]: xHead=${"%.1f".format(signal.xHead)}, xTail=${"%.1f".format(signal.xTail)}, width=${"%.1f".format(width)}, left=${"%.1f".format(left)}, tapeOffset=${"%.1f".format(controller.tapeOffset)}")
 
-                if (left > 0f && left < size.width && width > 0f) {
+                //if (left > 0f && left < size.width && width > 0f) {
                     val signalY = size.height / 2f - Vars.signalYOffset
                     drawRect(
-                        color = Vars.signalColor,
+                        color = signal.color,
+                        //topLeft = Offset(left, signalY),
+                        //size = Size(width, Vars.signalHeight)
                         topLeft = Offset(left, signalY),
                         size = Size(width, Vars.signalHeight)
                     )
-                }
+                //}
             }
         }
     }
