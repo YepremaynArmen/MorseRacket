@@ -30,7 +30,7 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
-import com.example.morseracket.ui.components.MorseTape
+import com.example.morseracket.ui.components.MorseTapeCanvas
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlin.coroutines.cancellation.CancellationException
@@ -116,7 +116,7 @@ fun LearnLettersScreen(navController: NavController) {
                                 fontWeight = FontWeight.Black
                             )
                             Spacer(modifier = Modifier.height(24.dp))
-                            MorseTape(
+                            MorseTapeCanvas(
                                 controller = controller,
                                 modifier = Modifier
                                     .fillMaxWidth()
