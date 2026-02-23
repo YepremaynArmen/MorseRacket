@@ -24,70 +24,68 @@ class Tape(
         width = xEnd - xStart
         createCells()  // ✅ Создаем разметку при инициализации!
     }
-
+    private var currentCellIndex = 0
     private fun createCells() {
         var currentTypeX = xStart
         var currentCellX = 0f
-
-        while (currentTypeX < xEnd) {
+        println("✅ currentCellX: ${currentCellX} width ${width}")
+        while (currentCellX < width) {
             cells.add(Cell(
                 x = currentCellX
-                //width = cellWidth,
-                //height = cellHeight,
-                //bodyColor = Color(0xFFD4AF37),
-                //borderColor = Color.Black
             ))
-            currentTypeX += Vars.signalWidth
+            //currentTypeX += Vars.signalWidth
+            println("✅ currentCellX: ${currentCellX} width ${width}")
             currentCellX += Vars.signalWidth
         }
+        println("✅ cells: ${cells.size}")
     }
 
     fun moveLeft(offset: Float) {
         xStart -= offset
         xEnd -= offset
         xCurrent -= offset
-        alignToNearestCell(Vars.FIXED_START_X)
+        //alignToNearestCell(Vars.FIXED_START_X)
     }
 
     private fun alignToNearestCell(targetX: Float) {
+        var previosCell: Cell? = null
         var nearestCell: Cell? = null
-        var minDistance = Float.MAX_VALUE
-        val searchRadius = 100f  // ← НАСТРОЙКА 1: радиус поиска
-        //val minCellWidth = 10f   // ← НАСТРОЙКА 2: мин. ширина ячейки
-        // Находим ближайший cell к targetX
-        for (cell in cells) {
-            //if (cell.width < Vars.signalWidth) continue  // Пропускаем мелкие
-            //val cellLeft = xStart + cell.x
-            //val distance = abs(cellLeft - targetX)
-
-            // Только в радиусе поиска
-            //if (distance < searchRadius && distance < minDistance) {
-               // minDistance = distance
-                //nearestCell = cell
-           // }
-            println("📍 tape xCurrent= ${xCurrent} xStart = ${xStart}  targetX =${targetX}")
-            if (xStart + cell.x >= targetX){
-
-                if (cell.bodyColor != cell.defaultColor) continue
-                nearestCell = cell
-                println("📍 nearestCell cell.x ${cell.x} targetX ${targetX}")
-                break
+        //var index = 0
+        //for (cell in cells) {
+        run searchLoop@{
+        controller.tape.cells.forEachIndexed { index, cell ->
+            /*println("📍 index ${index}  tape xCurrent= ${xCurrent} xStart = ${xStart}  cell.x ${cell.x} " +
+                    " controller.tapeOffset ${controller.tapeOffset}  targetX =${targetX} " +
+                    "color ${cell.bodyColor.toColorName()} ")*/
+            //if (xStart + Vars.signalWidth > targetX){
+            println("📍 index ${index} xStart ${xStart}  tape cell.x= ${cell.x} " +
+                    "tapeOffset ${controller.tapeOffset} targetX ${targetX} ")
+            println("📍 index ${index} if ${xStart + cell.x - controller.tapeOffset - Vars.signalWidth} " +
+                    "> targetX ${targetX} ")
+            if (xStart + cell.x - controller.tapeOffset - Vars.signalWidth > targetX){
+                if (cell.bodyColor == cell.defaultColor) { //continue
+                    nearestCell = cell
+                    previosCell = controller.tape.cells[index - 1]
+                    //return@forEachIndexed
+                    return@searchLoop
+                }
+                //break
             }
+            }
+            //index++
+        }
+        if (previosCell != null){
+            println("📍 previosCell cell.x ${previosCell.x} targetX ${targetX}" +
+                    " xStart ${xStart} tapeOffset ${controller.tapeOffset}")
         }
 
-        nearestCell ?: return  // Нет подходящих ячеек
+        nearestCell ?: return
+        val diff = nearestCell.x + controller.tapeOffset
+        //controller.tapeOffset -= diff
+        xStart -= diff
+        println("📍 nearestCell cell.x ${nearestCell.x} targetX ${targetX}" +
+                " diff ${diff} xStart ${xStart} tapeOffset ${controller.tapeOffset}")
 
-        // Вычисляем сдвиг чтобы cell.x оказался точно в FIXED_START_X
-        //val cellLeft = xStart + nearestCell.x
-        //val neededShift = Vars.FIXED_START_X - cellLeft
-
-        // Применяем сдвиг ко ВСЕМ позициям
-        //xStart = xStart - Vars.FIXED_START_X
-        //xEnd += neededShift
-        //xCurrent = Vars.FIXED_START_X
-        //println("📍 Подстроили tapeOffset ${controller.tapeOffset} cell ${nearestCell.x} к ${Vars.FIXED_START_X}, сдвиг: $neededShift")
-        //controller.tapeOffset = xStart - Vars.FIXED_START_X
-        //println("📍 Подстроили tapeOffset ${controller.tapeOffset}")
     }
 
 }

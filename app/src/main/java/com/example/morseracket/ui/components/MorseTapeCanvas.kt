@@ -11,21 +11,28 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.clipRect
+import androidx.compose.ui.text.drawText
 import com.example.morseracket.ui.Vars
 import com.example.morseracket.ui.controllers.MorseController
+
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.drawText
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.sp
 
 @Composable
 fun MorseTapeCanvas(
     controller: MorseController,
     modifier: Modifier = Modifier
 ) {
-
+    val textMeasurer = rememberTextMeasurer()
     Canvas(
         modifier = modifier
             .fillMaxSize()
             .background(Color(0xFF2F1B14).copy(alpha = 0.2f))  // ✅ ФОН бобины!
     ) {
         val centerY = size.height / 2f - 20f
+
 
         // ✅ ОБРЕЗАЕМ ВСЕ рисование пределами бобины!
         clipRect(
@@ -94,22 +101,28 @@ fun MorseTapeCanvas(
                 // ФИКСИРОВАННАЯ позиция (без сдвига)
                 val x = cell.x
 
-                if (x > -100f && x < size.width + 100f) {
-                    // БОРДЮР
-                    /*                drawRect(
-                    color = cell.borderColor,
-                    topLeft = Offset(tapeLeft + cell.x, centerY +2f),
-                    size = Size(cell.width, cell.height),
-                    style = Stroke(cell.borderWidth)
-                )*/
+                if (x > -size.width && x < size.width * 2f)  {
                     val centerY = size.height / 2f - 20f
-
-                    // ТЕЛО
                     drawRect(
                         color = cell.bodyColor,
                         topLeft = Offset(tapeLeft + cell.x + 2f, centerY + 2f),
                         size = Size(cell.width, cell.height)
                     )
+                    val cellIndex = controller.tape.cells.indexOf(cell)  // Номер ячейки
+
+                    drawText(
+                        textMeasurer = textMeasurer,  // ← Нужен TextMeasurer!
+                        text = "$cellIndex",
+                        topLeft = Offset(
+                            tapeLeft + cell.x + 8f,  // Центр ячейки по X
+                            centerY + 8f             // Центр ячейки по Y
+                        ),
+                        style = TextStyle(
+                            fontSize = 12.sp,
+                            color = Color.Black
+                        )
+                    )
+
                 }
             }
 

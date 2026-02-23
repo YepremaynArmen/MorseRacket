@@ -54,33 +54,16 @@ fun LearnLettersScreen(navController: NavController) {
     }
 
 
+
     LaunchedEffect(controller.isKeyPressed) {
         val pressTime = System.currentTimeMillis()
 
         while (controller.isKeyPressed) {
-            //controller.tapeOffset -= Vars.signalWidth
-            //controller.updateTape()
-            //controller.moveTape()
-
-            // ✅ Покраска ТОЛЬКО по времени удержания!
-            val holdTime = System.currentTimeMillis() - pressTime
-
+            controller.updateTape()
             delay(Vars.moveDelay)
         }
 
-        // Пробел
-        //controller.tapeOffset -= Vars.signalWidth
-        delay(Vars.moveDelay)
     }
-
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            controller.updateTape()  // 60 FPS!
-            kotlinx.coroutines.delay(200)
-        }
-    }
-
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f)) {
