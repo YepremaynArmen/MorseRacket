@@ -35,6 +35,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlin.coroutines.cancellation.CancellationException
 import com.example.morseracket.ui.Vars
+import com.example.morseracket.ui.components.MorseDecodeCanvas
 
 @Composable
 fun LearnLettersScreen(navController: NavController) {
@@ -83,6 +84,9 @@ fun LearnLettersScreen(navController: NavController) {
                     .width(CONTAINER_WIDTH.dp)
                     .padding(end = 24.dp)
             ) {
+
+
+
                 // ✅ БОБИНА ТЕЛЕГРАФНОЙ ЛЕНТЫ 📜 (60dp высота)
                 Box(modifier = Modifier.weight(1f)) {
                     currentLetter?.let { letter ->
@@ -104,11 +108,20 @@ fun LearnLettersScreen(navController: NavController) {
                                     .height(60.dp)
                                     .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            // ПОЛОСКА РАСШИФРОВКИ (50dp высота)
+                            MorseDecodeCanvas(
+                                controller = controller,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp)
+                                    .background(Color(0xFF1A1A1A), RoundedCornerShape(8.dp))
+                            )
                         }
                     }
                 }
 
-                Row(
+                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 16.dp),

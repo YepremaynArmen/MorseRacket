@@ -3,7 +3,6 @@ package com.example.morseracket.ui.components
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -31,9 +30,6 @@ fun MorseTapeCanvas(
             .fillMaxSize()
             .background(Color(0xFF2F1B14).copy(alpha = 0.2f))  // ✅ ФОН бобины!
     ) {
-        val centerY = size.height / 2f - 20f
-
-
         // ✅ ОБРЕЗАЕМ ВСЕ рисование пределами бобины!
         clipRect(
             left = 0f,
@@ -42,26 +38,8 @@ fun MorseTapeCanvas(
             bottom = size.height
 
         ) {
-            // 1. ЖЕЛТАЯ ЛЕНТА
-            /*var firstOffset = 0f
-            if (controller.signals.size == 0)
-                firstOffset = Vars.signalWidth*2
-
-            val tapeLeft = Vars.FIXED_START_X + controller.tapeOffset - firstOffset
-            val tapeRight = controller.tapeOffset + size.width * 2f
-            drawRect(
-                color = Color(0xFFD4AF37).copy(alpha = 0.9f),
-                topLeft = Offset(tapeLeft, centerY - 25f),
-                size = Size(tapeRight - tapeLeft, 90f)
-            )*/
-
             val centerY = size.height / 2f
             val tapeLeft = Vars.FIXED_START_X + controller.tapeOffset
-            //val tapeLeft = controller.tape.xCurrent
-            //val tapeRight = controller.tapeOffset + size.width * 2f
-            val tapeRight = controller.tape.xCurrent + controller.tape.width
-
-            // ✅ Рисуем Tape объект из controller.tape
             drawRect(
                 color = controller.tape.color,
                 topLeft = Offset(
@@ -73,7 +51,6 @@ fun MorseTapeCanvas(
                     height = controller.tape.height
                 )
             )
-
             // 2. Бронзовая черта
             drawLine(
                 color = Color(0xFF8B4513),
@@ -95,8 +72,6 @@ fun MorseTapeCanvas(
             drawPath(path, color = Color(0xFF8B4513).copy(alpha = 0.4f))
 
             // 4. ЧЕРНЫЕ сигналы
-
-
             controller.tape.cells.forEach { cell ->
                 // ФИКСИРОВАННАЯ позиция (без сдвига)
                 val x = cell.x
@@ -109,7 +84,6 @@ fun MorseTapeCanvas(
                         size = Size(cell.width, cell.height)
                     )
                     // Номер ячейки
-
                     drawText(
                         textMeasurer = textMeasurer,  // ← Нужен TextMeasurer!
                         text = "$cellIndex",
@@ -125,25 +99,6 @@ fun MorseTapeCanvas(
 
                 }
             }
-
-
-
-/*            controller.signals.forEachIndexed { index, signal ->
-                // ✅ Сигналы уже в абсолютных координатах!
-                val left = signal.xHead
-                val width = signal.xTail - signal.xHead
-
-                println("🔍 Signal[$index]: xHead=${"%.1f".format(signal.xHead)}, xTail=${"%.1f".format(signal.xTail)}, width=${"%.1f".format(width)}, left=${"%.1f".format(left)}, tapeOffset=${"%.1f".format(controller.tapeOffset)}")
-
-                    val signalY = size.height / 2f - Vars.signalYOffset
-                    drawRect(
-                        color = signal.color,
-                        //topLeft = Offset(left, signalY),
-                        //size = Size(width, Vars.signalHeight)
-                        topLeft = Offset(left, signalY),
-                        size = Size(width, Vars.signalHeight)
-                    )
-            }*/
         }
     }
 }
