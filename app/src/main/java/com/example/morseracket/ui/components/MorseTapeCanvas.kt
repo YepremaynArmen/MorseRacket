@@ -100,15 +100,15 @@ fun MorseTapeCanvas(
             controller.tape.cells.forEach { cell ->
                 // ФИКСИРОВАННАЯ позиция (без сдвига)
                 val x = cell.x
-
-                if (x > -size.width && x < size.width * 2f)  {
+                val cellIndex = controller.tape.cells.indexOf(cell)
+                if (x > -size.width && x < controller.tape.width)  {
                     val centerY = size.height / 2f - 20f
                     drawRect(
                         color = cell.bodyColor,
                         topLeft = Offset(tapeLeft + cell.x + 2f, centerY + 2f),
                         size = Size(cell.width, cell.height)
                     )
-                    val cellIndex = controller.tape.cells.indexOf(cell)  // Номер ячейки
+                    // Номер ячейки
 
                     drawText(
                         textMeasurer = textMeasurer,  // ← Нужен TextMeasurer!

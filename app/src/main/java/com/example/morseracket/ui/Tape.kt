@@ -26,15 +26,17 @@ class Tape(
     }
     private var currentCellIndex = 0
     private fun createCells() {
-        var currentTypeX = xStart
         var currentCellX = 0f
+        var index = 0f
         println("✅ currentCellX: ${currentCellX} width ${width}")
         while (currentCellX < width) {
+            index++
             cells.add(Cell(
                 x = currentCellX
+
             ))
             //currentTypeX += Vars.signalWidth
-            println("✅ currentCellX: ${currentCellX} width ${width}")
+            println("✅index ${index} currentCellX: ${currentCellX} width ${width}")
             currentCellX += Vars.signalWidth
         }
         println("✅ cells: ${cells.size}")

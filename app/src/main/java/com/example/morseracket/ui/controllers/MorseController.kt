@@ -19,9 +19,9 @@ class MorseController {
 
     val signals = mutableStateListOf<Signal>()
     val tape = Tape(
-        xEnd = Vars.FIXED_START_X +1800f,
+        xEnd = Vars.FIXED_START_X +4000f,
         xCurrent = Vars.FIXED_START_X,
-        width = Vars.FIXED_START_X +1800f,
+        width = Vars.FIXED_START_X +4000f,
         height = 90f,
         cellHeight = Vars.signalHeight-10f,
         color = Color.Yellow,
@@ -49,27 +49,19 @@ class MorseController {
 
     fun onKeyPress() {
         isKeyPressed = true
-        emmitSignal()
+        //emmitSignal()
     }
 
     fun onKeyRelease() {
         isKeyPressed = false
-        moveTape(2)
+        moveTape(1)
     }
-
 
     fun updateTape() {
         if (isKeyPressed) {
-            //tapeOffset -= Vars.signalWidth//6
-/*            if (signals.isNotEmpty()) {
-                val signal = signals.last()
-                signal.xTail = Vars.FIXED_START_X-Vars.signalWidth//Vars.signalWidth*2//tapeOffset
-            }*/
-            //isKeyPressed = false
-            //moveTape(1)
-            //emmitSignal()
-
+            emmitSignal()
         }
+        moveTape(1)
     }
 
     fun restart() {
