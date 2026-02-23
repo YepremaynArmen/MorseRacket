@@ -8,7 +8,7 @@ object Vars {
     const val signalWidth = 40f
     const val signalHeight = 40f
     const val signalYOffset = 10f
-    val moveDelay  = 100L
+    val moveDelay  = 100L*3
 
     const val tapeLength = 2000f  // ✅ Длина ленты!
 }

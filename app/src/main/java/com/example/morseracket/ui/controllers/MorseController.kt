@@ -9,7 +9,7 @@ import androidx.compose.ui.graphics.Color
 import com.example.morseracket.ui.Signal
 import com.example.morseracket.ui.Tape
 import com.example.morseracket.ui.Vars
-
+import kotlinx.coroutines.delay
 
 
 @Stable
@@ -35,7 +35,7 @@ class MorseController {
     // var shouldMoveTape by mutableStateOf(false)
     var tapeOffset by mutableStateOf(0f)
    // var offset by mutableStateOf(0f)
-
+   var spaceCount = 3
 
     fun emmitSignal() {
         val tapeLeft = Vars.FIXED_START_X + tapeOffset
@@ -49,19 +49,25 @@ class MorseController {
 
     fun onKeyPress() {
         isKeyPressed = true
-        //emmitSignal()
+        spaceCount = 3
     }
 
     fun onKeyRelease() {
         isKeyPressed = false
-        moveTape(1)
+        //moveTape(1)
     }
 
     fun updateTape() {
         if (isKeyPressed) {
             emmitSignal()
         }
+        else{
+            if (spaceCount > 0 ) {
+                spaceCount--
+            }
+        }
         moveTape(1)
+
     }
 
     fun restart() {
@@ -74,6 +80,7 @@ class MorseController {
         //shouldMoveTape = false
         tape.xStart = Vars.FIXED_START_X //- Vars.signalWidth
         tape.xCurrent = tape.xStart
+        spaceCount = 3
         tape.cells.forEach { cell ->
                 cell.bodyColor = cell.defaultColor
             }

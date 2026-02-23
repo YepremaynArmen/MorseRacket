@@ -55,14 +55,12 @@ fun LearnLettersScreen(navController: NavController) {
 
 
 
-    LaunchedEffect(controller.isKeyPressed) {
-        val pressTime = System.currentTimeMillis()
-
-        while (controller.isKeyPressed) {
+    LaunchedEffect(controller.isKeyPressed, controller.spaceCount) {
+        while (controller.isKeyPressed
+            || (controller.spaceCount > 0 && controller.spaceCount < 4)) {
             controller.updateTape()
             delay(Vars.moveDelay)
         }
-
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
