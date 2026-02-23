@@ -157,7 +157,7 @@ fun LearnLettersScreen(navController: NavController) {
                             modifier = Modifier
                                 .padding(16.dp)
                                 .background(Color.LightGray)
-                                .clickable { controller.moveTape() }
+                                .clickable { controller.moveTape(1) }
                         )
                     }
 
