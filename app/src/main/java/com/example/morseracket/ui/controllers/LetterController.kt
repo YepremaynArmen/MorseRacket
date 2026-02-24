@@ -11,7 +11,7 @@ class LetterController {
 
     private val _currentLetter = MutableStateFlow<Pair<String, String>?>(null)
     val currentLetter: StateFlow<Pair<String, String>?> = _currentLetter.asStateFlow()
-
+    private var targetCode = ""
     fun updateLanguage(isRussian: Boolean) {
         val letters = if (isRussian) MorseData.RUSSIAN_LETTERS else MorseData.LATIN_LETTERS
         val index = _currentLetterIndex.value.coerceAtMost(letters.size - 1)
@@ -30,5 +30,9 @@ class LetterController {
         val letters = if (isRussian) MorseData.RUSSIAN_LETTERS else MorseData.LATIN_LETTERS
         _currentLetterIndex.value = (_currentLetterIndex.value - 1).coerceAtLeast(0)
         _currentLetter.value = letters.getOrNull(_currentLetterIndex.value)
+    }
+
+    fun checkUserInput(userSignal: String): Boolean {
+        return userSignal == targetCode.take(1)  // Первая точка E
     }
 }

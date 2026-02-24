@@ -65,7 +65,7 @@ class Tape(
             println("📍 index ${index} if ${xStart + cell.x - controller.tapeOffset - Vars.signalWidth} " +
                     "> targetX ${targetX} ")
             if (xStart + cell.x - controller.tapeOffset - Vars.signalWidth > targetX){
-                if (cell.bodyColor == cell.defaultColor) { //continue
+                if (cell.bodyColor == cell.spaceColor) { //continue
                     nearestCell = cell
                     previosCell = controller.tape.cells[index - 1]
                     //return@forEachIndexed

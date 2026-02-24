@@ -6,14 +6,16 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import com.example.morseracket.data.MorseData
 import com.example.morseracket.ui.Signal
 import com.example.morseracket.ui.Tape
 import com.example.morseracket.ui.Vars
+import com.example.morseracket.ui.cards.Decoder
 import kotlinx.coroutines.delay
 
 
 @Stable
-class MorseController {
+class MorseController (private val letterController: LetterController){
     var lineOffset by mutableFloatStateOf(0f)
     //var isDrawing by mutableStateOf(false)
 
@@ -35,13 +37,13 @@ class MorseController {
     // var shouldMoveTape by mutableStateOf(false)
     var tapeOffset by mutableStateOf(0f)
    // var offset by mutableStateOf(0f)
-   var spaceCount = 3
+   var spaceCount = 0
 
     fun emmitSignal() {
         val tapeLeft = Vars.FIXED_START_X + tapeOffset
         for (cell in tape.cells) {
             if (tapeLeft + cell.x  >= Vars.FIXED_START_X){
-                cell.bodyColor = Color.Black
+                cell.bodyColor = cell.dotColor
                 break
             }
         }
@@ -55,7 +57,25 @@ class MorseController {
     fun onKeyRelease() {
         isKeyPressed = false
         //moveTape(1)
+
+
+        val userResult = Decoder.decodedLetters
+            .lastOrNull { it.text.all { char -> char.isLetter() } }
+            ?.text ?: ""
+
+        val expectedLetter = letterController.currentLetter.value?.first ?: ""
+
+        println("DEBUG: userResult='$userResult' expectedLetter='$expectedLetter'")
+
+        if (userResult != expectedLetter && userResult.isNotEmpty()) {
+            restart()
+            // return НЕ НУЖЕН — код закончился
+        }
+
+
     }
+
+    
 
     fun updateTape() {
         if (isKeyPressed) {
@@ -67,7 +87,6 @@ class MorseController {
             }
         }
         moveTape(1)
-
     }
 
     fun restart() {
@@ -82,7 +101,7 @@ class MorseController {
         tape.xCurrent = tape.xStart
         spaceCount = 3
         tape.cells.forEach { cell ->
-                cell.bodyColor = cell.defaultColor
+                cell.bodyColor = cell.spaceColor
             }
     }
     fun moveTape(repeatCount: Int) {
@@ -91,5 +110,13 @@ class MorseController {
             tapeOffset -= step
             tape.moveLeft(step)
         }
+    }
+
+    fun onUserSignal(signal: String) {  // signal приходит готовый "·" или "—"
+        if (!letterController.checkUserInput(signal)) {
+            restart()  // ❌ Неправильный сигнал
+            return
+        }
+        // ✅ Правильно → лента продолжает движение
     }
 }

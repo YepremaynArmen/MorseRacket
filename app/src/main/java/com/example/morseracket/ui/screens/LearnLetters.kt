@@ -43,7 +43,7 @@ fun LearnLettersScreen(navController: NavController) {
     val CONTAINER_WIDTH = 280
 
     val letterController = remember { LetterController() }
-    val controller = remember { MorseController() }
+    val controller = remember { MorseController(letterController) }
     val coroutineScope = rememberCoroutineScope()
     var repeatJob by remember { mutableStateOf<Job?>(null) }
 
@@ -55,7 +55,6 @@ fun LearnLettersScreen(navController: NavController) {
     }
 
 
-
     LaunchedEffect(controller.isKeyPressed, controller.spaceCount) {
         while (controller.isKeyPressed
             || (controller.spaceCount > 0 && controller.spaceCount < 4)) {
@@ -63,6 +62,8 @@ fun LearnLettersScreen(navController: NavController) {
             delay(Vars.moveDelay)
         }
     }
+
+
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(modifier = Modifier.weight(1f)) {
