@@ -17,6 +17,8 @@ class Tape(
     val cellHeight: Float = 30f,
     val color: Color = Color.Yellow,
     val cells: MutableList<Cell> = mutableListOf(),
+    var previousSignalIndex  : Int = 0,
+    var lastSignalIndex : Int = 0,
     private val controller: MorseController
 ) {
 

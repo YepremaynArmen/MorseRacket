@@ -8,7 +8,10 @@ object Vars {
     const val signalWidth = 40f
     const val signalHeight = 40f
     const val signalYOffset = 10f
+
+    const val typeLength = 10000f
     val moveDelay  = 100L*3
 
     const val tapeLength = 2000f  // ✅ Длина ленты!
+    const val MAX_HITS = 10
 }

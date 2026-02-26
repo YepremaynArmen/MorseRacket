@@ -15,6 +15,7 @@ import com.example.morseracket.ui.Vars
 import com.example.morseracket.ui.controllers.MorseController
 
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
 
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.dp
@@ -22,6 +23,52 @@ import androidx.compose.ui.unit.sp
 import com.example.morseracket.ui.cards.Decoder
 
 @Composable
+fun MorseDecodeCanvas(controller: MorseController, modifier: Modifier = Modifier) {
+    val textMeasurer = rememberTextMeasurer()
+    Canvas(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(50.dp)
+            .background(Color(0xFF1A1A1A))
+    ) {
+        Decoder.decodeTape(controller)
+
+        val lastLetter = Decoder.decodedLetters.lastOrNull() ?: return@Canvas
+        val expectedLetter = controller.letterController.currentLetter.value?.first ?: ""
+        val userLetter = lastLetter.text.first().toString()  // ← Char → String!
+        val isError = expectedLetter.isNotEmpty() && userLetter != expectedLetter
+
+        val textColor = if (isError) Color.Red else Color.White
+
+        val textLayoutResult = textMeasurer.measure(
+            AnnotatedString(lastLetter.text),
+            TextStyle(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+        )
+
+        val centerX = (size.width - textLayoutResult.size.width) / 2f
+        val centerY = (size.height - textLayoutResult.size.height) / 2f
+
+        drawText(
+            textMeasurer = textMeasurer,
+            text = AnnotatedString(lastLetter.text),
+            topLeft = Offset(centerX, centerY),
+            style = TextStyle(
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+        )
+    }
+}
+
+
+
+
+/*@Composable
 fun MorseDecodeCanvas(controller: MorseController, modifier: Modifier = Modifier) {
     val textMeasurer = rememberTextMeasurer()
     Canvas(
@@ -62,7 +109,7 @@ fun MorseDecodeCanvas(controller: MorseController, modifier: Modifier = Modifier
             }
         }
     }
-}
+}*/
 
 
 

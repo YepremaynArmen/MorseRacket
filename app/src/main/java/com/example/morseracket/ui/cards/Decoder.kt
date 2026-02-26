@@ -43,7 +43,7 @@ object Decoder {
             if (spaceCount >= 2 && currentMorseCode.isNotEmpty()) {
                 val letter = findLetter(currentMorseCode, isRussian)
                 decodedLetters.add(DecodedLetter("$letter $currentMorseCode", i - 15, i))
-                println("✅ БУКВА: $letter $currentMorseCode")
+                //println("✅ БУКВА: $letter $currentMorseCode")
                 currentMorseCode = ""
             }
 
@@ -56,9 +56,9 @@ object Decoder {
                     2 -> "—"
                     else -> "?"
                 }
-                if (signal != "?") {
+                //if (signal != "?") {
                     currentMorseCode += signal
-                }
+                //}
                 i += dots
             } else {
                 i++

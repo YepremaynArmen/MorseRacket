@@ -30,6 +30,8 @@ import com.example.morseracket.ui.cards.MorseCard
 import com.example.morseracket.ui.controllers.LetterController
 import com.example.morseracket.ui.controllers.MorseController
 import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import com.example.morseracket.ui.components.MorseTapeCanvas
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -70,8 +72,8 @@ fun LearnLettersScreen(navController: NavController) {
             LazyColumn(
                 modifier = Modifier
                     .weight(1f)
-                    .padding(start = 24.dp, end = 16.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
+                    .fillMaxHeight(),  // Убрали padding(start/end)
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 val letters = if (isRussian) MorseData.RUSSIAN_LETTERS else MorseData.LATIN_LETTERS
                 items(letters) { letter ->
@@ -84,9 +86,9 @@ fun LearnLettersScreen(navController: NavController) {
                     .fillMaxHeight()
                     .width(CONTAINER_WIDTH.dp)
                     .padding(end = 24.dp)
-            ) {
+            )
 
-
+            {
 
                 // ✅ БОБИНА ТЕЛЕГРАФНОЙ ЛЕНТЫ 📜 (60dp высота)
                 Box(modifier = Modifier.weight(1f)) {
@@ -96,12 +98,32 @@ fun LearnLettersScreen(navController: NavController) {
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
+                            // 🔥 ТАБЛО ПОПАДАНИЙ
+                            Box(
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.8f), RoundedCornerShape(12.dp))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                            ) {
+                                Text(
+                                    text = "${controller.hitCount}/${Vars.MAX_HITS}",
+                                    fontSize = 20.sp,
+                                    color = if (controller.hitCount >= Vars.MAX_HITS) Color.Green else Color.White,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(12.dp))
+
+                            // Целевая буква
                             Text(
                                 text = letter.first,
                                 fontSize = 48.sp,
                                 fontWeight = FontWeight.Black
                             )
-                            Spacer(modifier = Modifier.height(24.dp))
+
+                            Spacer(modifier = Modifier.height(20.dp))
+
+                            // Морская лента
                             MorseTapeCanvas(
                                 controller = controller,
                                 modifier = Modifier
@@ -109,8 +131,10 @@ fun LearnLettersScreen(navController: NavController) {
                                     .height(60.dp)
                                     .background(Color.Gray.copy(alpha = 0.2f), RoundedCornerShape(8.dp))
                             )
+
                             Spacer(modifier = Modifier.height(10.dp))
-                            // ПОЛОСКА РАСШИФРОВКИ (50dp высота)
+
+                            // Декодировка
                             MorseDecodeCanvas(
                                 controller = controller,
                                 modifier = Modifier
@@ -121,6 +145,7 @@ fun LearnLettersScreen(navController: NavController) {
                         }
                     }
                 }
+
 
                  Row(
                     modifier = Modifier
@@ -161,11 +186,12 @@ fun LearnLettersScreen(navController: NavController) {
                             if (controller.isKeyPressed) R.drawable.tapper_down
                             else R.drawable.tapper_up
                         ),
-                        contentDescription = null,
+                        contentDescription = "Ключ Морзе",
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(16.dp)
                             .size(100.dp)
+                            .graphicsLayer(alpha = 0.92f)  // 🔥 Белый фон исчезает!
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onPress = {
@@ -174,8 +200,8 @@ fun LearnLettersScreen(navController: NavController) {
                                         controller.onKeyRelease()
                                     }
                                 )
-                            }
-
+                            },
+                        contentScale = ContentScale.Fit  // Сохраняет пропорции + прозрачность
                     )
 
 
